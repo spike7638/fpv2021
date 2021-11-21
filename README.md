@@ -1,6 +1,6 @@
 # Brown CS 1951x: Formal Proof and Verification, 2021
 
-In this repository, you'll find Lean files for [CS1951x](https://cs.brown.edu/courses/cs1951x).
+In this repository, you'll find Lean files for [CS1951x](https://cs.brown.edu/courses/cs1951x), copied so that John Hughes can work on the assignments from this repository, commit from either home or office, etc. 
 
 ## Using this repository
 
@@ -27,7 +27,7 @@ We also assume that you have a GitHub account and have
 To set up this project, run:
 
 ```bash
-leanproject get git@github.com:BrownCS1951x/fpv2021.git
+leanproject get get git@github.com:spike7638/fpv2021.git\
 cd fpv2021
 lean --make src/lovelib.lean
 ```
