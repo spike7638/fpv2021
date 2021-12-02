@@ -4,15 +4,16 @@ universe u
 section affine_geometry
 
 @[class] structure affine_geom (α β  : Type u) :=
-(meets         : α → β  → Prop) -- a point P:α is on a line k:β  
-(join          : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
-(join_contains : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
-(join_unique   : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
-(parallel      : β → β → Prop)
-(parallel_prop :  ∀ k n, (parallel k n) ↔ ( (k = n) ∨ (∀ P, ¬ ((meets P k) ∧ (meets P n)))))
-(find_parallel : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
-(a2            : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
-(a3            : ∃ P Q R, (P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R) ∧ (¬ meets P (join Q R))) -- there are 3 noncollinear pts.
+(meets           : α → β  → Prop) -- a point P:α is on a line k:β  
+(join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
+(join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
+(join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+(parallel        : β → β → Prop)
+(parallel_prop_1 :  ∀ k, parallel k k) 
+(parallel_prop_2 : ∀ k n P, ((k ≠ n) ∧ parallel k n ∧  meets P k) →  ¬ (meets P n))
+(find_parallel   : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
+(a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
+(a3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
 
 -- I'd like to say "for the next page or so, A denotes an affine geometry." The following line fails to do so
 -- I got it by trying to imitate   .../algebra/group/defs, line 72ff
@@ -127,6 +128,32 @@ def joinA4 : A4 → A4 → A4Lines
 | A4.S A4.Q := A4Lines.QS
 | A4.S A4.R := A4Lines.RS
 
+def find_parallelA4 : A4 → A4Lines → A4Lines
+| A4.P A4Lines.PQ := A4Lines.PQ 
+| A4.P A4Lines.PR := A4Lines.PR
+| A4.P A4Lines.PS := A4Lines.PS
+| A4.P A4Lines.QR := A4Lines.PS
+| A4.P A4Lines.QS := A4Lines.PR 
+| A4.P A4Lines.PR := A4Lines.PR
+| A4.P A4Lines.RS := A4Lines.PQ
+| A4.Q A4Lines.PQ := A4Lines.PQ
+| A4.Q A4Lines.PR := A4Lines.QS 
+| A4.Q A4Lines.PS := A4Lines.QR
+| A4.Q A4Lines.QR := A4Lines.QR
+| A4.Q A4Lines.QS := A4Lines.QS
+| A4.Q A4Lines.RS := A4Lines.PQ
+| A4.R A4Lines.PQ := A4Lines.RS
+| A4.R A4Lines.PR := A4Lines.PR
+| A4.R A4Lines.PS := A4Lines.QR
+| A4.R A4Lines.QR := A4Lines.QR
+| A4.R A4Lines.QS := A4Lines.PR
+| A4.R A4Lines.RS := A4Lines.RS
+| A4.S A4Lines.PQ := A4Lines.RS
+| A4.S A4Lines.PR := A4Lines.QS
+| A4.S A4Lines.PS := A4Lines.PS
+| A4.S A4Lines.QR := A4Lines.PS
+| A4.S A4Lines.QS := A4Lines.QS 
+| A4.S A4Lines.RS := A4Lines.RS
 
 #check joinA4
 
@@ -200,53 +227,67 @@ def joinA4 : A4 → A4 → A4Lines
   end,
   parallel      := parallelA4,
 
-  parallel_prop := begin 
-    intros k n,
+  parallel_prop_1 := begin 
+    intros k,
     cases k,
-    cases n,
     repeat {
-      simp,
-    },
-    {
       rw [parallelA4],
-       apply iff.intro, 
-      {
-        cc
-      },
-      {
-        cc,
-        intro hleft,
-        cases P
-        -- intro P,      
-      },
+      cc,
     },
   end,
-  find_parallel := sorry,
-  a2            := sorry,
-  a3            := sorry
+  parallel_prop_2 := begin
+    
+      intros k n P,
+      cases k,
+      repeat {
+        cases n,
+        repeat {
+          cases P,
+          repeat {
+            rw [meetsA4, parallelA4],
+            cc,
+          },
+        },
+      },
+    repeat {
+      rw [meetsA4, parallelA4],
+      simp,
+      rw [meetsA4],
+      cc,
+    },
+  end,
+  find_parallel := find_parallelA4,
+  a2 := begin
+    intros P k n,
+    cases P,
+    repeat{cases k,
+    repeat {cases n,
+    repeat {
+      rw [meetsA4, parallelA4, find_parallelA4],
+      simp,
+    },},},
+  end,
+  a3 := begin
+    have h1:A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.P ≠ A4.R, by simp,
+    have h2:(¬ meetsA4 A4.P (joinA4 A4.Q A4.R)), by begin 
+      rw [joinA4],
+      intro h,
+      rw [meetsA4] at h,
+      assumption,
+    end,
+    have hh: (A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.P ≠ A4.R) ∧ ¬ meetsA4 A4.P (joinA4 A4.Q A4.R), begin
+      apply and.intro h1 h2,
+    end,
+    -- have hh2: A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.R ≠ A4.P ∧ ¬ meetsA4 A4.P (joinA4 A4.Q A4.R), begin
+    --   by simp,
+    -- end,
+    apply exists.intro A4.P,
+    apply exists.intro A4.Q,
+    apply exists.intro A4.R,
+    apply hh,
+  end
 }
-
--- (join_contains : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
--- (join_unique   : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
--- (parallel      : β → β → Prop)
--- (parallel_prop :  ∀ k n, (parallel k n) ↔ ( (k = n) ∨ (∀ P, (meets P k) ↔ ¬(meets P n))))
--- (find_parallel : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
--- (a2            : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
--- (a3            : ∃ P Q R, (P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R) ∧ (¬ meets P (join Q R))) -- there are 3 noncollinear pts.
+#check A4affine_geom
 
 
-
--- #check A4.affine_geom
-
--- instance] def int2.add_group : add_group int2 :=
--- { add          := int2.add,
---   add_assoc    :=
---     by intros a b c; cases' a; cases' b; cases' c; refl,
---   zero         := int2.zero,
---   zero_add     := by intro a; cases' a; refl,
---   add_zero     := by intro a; cases' a; refl,
---   neg          := λa, a,
---   add_left_neg := by intro a; cases' a; refl }
-
-
--- end geom := A4Lines.@[
+end affine_geometry 
