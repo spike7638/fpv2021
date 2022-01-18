@@ -1,5 +1,6 @@
 import tactic
 local attribute classical.prop_decidable
+-- set_option pp.all true
 
 open classical
 
@@ -53,6 +54,14 @@ example {p q:ℕ → Prop}: (∀ n, ((p n) ∧ (q n))) ↔ (∀ n,((q n) ∧ (p 
 begin 
   refine iff.symm _,
   refine (forall_congr _).symm,
+  intro,
+  apply iff.intro,
+  { 
+    exact @and.symm (p a) (q a),
+  },
+  {
+    exact @and.symm (q a) (p a),
+  }
 end
 
 @[class] structure affine_geom (α β  : Type u) :=
@@ -113,28 +122,31 @@ begin
       rw h,
       apply G.parallel_prop_1,
     },
-    -- {
-    --   fix P:α ,
+    intro hpkn,
+    have kNEn: k ≠ n := h,
+    have ha : (k ≠ n) ∧ (affine_geom.parallel α k n) := 
+    begin
+        exact ⟨h, hpkn⟩,
+    end,
+    have hr: (∀ P : α, (¬ ((affine_geom.meets P k) ∧ (affine_geom.meets P n)))) :=
+    begin
+      refine affine_geom.parallel_prop_2 k n ha, 
+    end,
 
-      -- intro hp1,
-      -- have q: (∀ X:α, ( ¬  ((affine_geom.meets X k) ∧  (affine_geom.meets X n)) )) ,
-      -- { 
-      --   intro X,
-      --   apply G.parallel_prop_2,
-      --   tauto,
-      -- },
-      -- refine affine_geom.parallel_prop_3 n k _,
-      -- intro P,
-      -- specialize q P,
-      -- cc,
-  --   },
-  -- },
+    have: (affine_geom.parallel α n k) := 
+    begin
+      refine affine_geom.parallel_prop_3 n k _,
+      intro P,
+      specialize hr P,
+      cc,
+    end,
+    exact this,
+  },
   {
 -- Paraphrasing Hartshorne: "If k = n, there is nothing to prove. If k ≠ n, and there is 
 -- a point P on both k and n, then both k and n are parallel to m and pass through P,
 -- which is impossible by axiom A2." 
 -- (a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
-     
     rw [transitive],
     intro q,
     intro r,
@@ -143,21 +155,23 @@ begin
     intro hp2,
     have hAnd: ((affine_geom.parallel α q r) ∧ (affine_geom.parallel α r s)) := and.intro hp1 hp2,
     revert hAnd,
-   
+-- If k = n, there is nothing to prove
     by_cases hqs: q = s ,
     {
       rw [hqs],
       intro hJunk,
       apply G.parallel_prop_1,
     },
+-- If k ≠ n, 
     {
-      -- contrapose,
-      intro hMqs,
-      have hqNEs: q ≠ s := hqs,
-      have hh: G.parallel_prop_2 q s _ _,
+      have hh : affine_geom.parallel α q s :=
+        sorry,
+
     }
-  },    
+  }
+      
 end
+
 
 --   {
 --     rw [transitive],
@@ -446,6 +460,20 @@ def find_parallelA4 : A4 → A4Lines → A4Lines
       rw [meetsA4] at hp,  
       cc,
     },
+    {
+      rw [parallelA4],
+      specialize hp A4.S,
+      rw [meetsA4] at hp,  
+      rw [meetsA4] at hp,  
+      cc,
+    },
+    repeat {
+      rw [parallelA4],
+      specialize hp A4.S,
+      rw [meetsA4] at hp,  
+      rw [meetsA4] at hp,  
+      cc,
+    },
   end,
   find_parallel := find_parallelA4,
   a2 := begin
@@ -479,6 +507,9 @@ def find_parallelA4 : A4 → A4Lines → A4Lines
     apply hh,
   end
 }
+
+#check A4affine_geom 
+
 -- @[instance] def A4affine_geom : affine_geom A4 A4Lines :=
 -- {
 --   meets       := meetsA4,
