@@ -77,7 +77,8 @@ end
 -- lines that have no shared points are parallel. 
 (parallel_prop_3 : ∀ k n, (∀ P:α , ((meets P k) →  ¬ (meets P n)) ) → (parallel k n)  ) 
 (find_parallel   : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
-(a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
+(a2a              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) →  (n = find_parallel P k))
+(a2b              : ∀ P k n, (n = find_parallel P k) → ((meets P n ) ∧ (parallel n k)))
 (a3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
 
 -- I'd like to say "for the next page or so, A denotes an affine geometry." The following line fails to do so
@@ -185,12 +186,12 @@ begin
  
       have e1: q = affine_geom.find_parallel P r := 
       begin
-        apply (affine_geom.a2 P r q).mp,
+        apply (affine_geom.a2a P r q), 
         exact ⟨ hw_h.1, hp1⟩, 
       end,
       have e2: s = affine_geom.find_parallel P r := 
       begin
-        apply (affine_geom.a2 P r s).mp,
+        apply (affine_geom.a2a P r s),
         exact ⟨ hw_h.2, parallel_symmetric hp2⟩, 
       end,
       have e3: q = s :=
@@ -468,7 +469,17 @@ def find_parallelA4 : A4 → A4Lines → A4Lines
     },
   end,
   find_parallel := find_parallelA4,
-  a2 := begin
+  a2a := begin
+    intros P k n,
+    cases P,
+    repeat{cases k,
+    repeat {cases n,
+    repeat {
+      rw [meetsA4, parallelA4, find_parallelA4],
+      simp,
+    },},},
+  end,
+  a2b := begin
     intros P k n,
     cases P,
     repeat{cases k,
@@ -632,12 +643,35 @@ begin
   begin
     have h3a: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ affine_geom.meets P (affine_geom.join Q R))) :=
     begin
-      exact G.a3 , -- tried "affine_geom.a3 and that failed. because it cou;dn't guess \b apparently"
+      exact G.a3 , -- tried "affine_geom.a3 and that failed. because it couldn't guess \b apparently"
     end,
-    intro P:α ,
-    specialize h3a,
-    specialize h3a (P Q R),
-  end
+    cases h3a with P h3a1,
+    cases h3a1 with Q h3a2,
+    cases h3a2 with R h3a3,
+    have h3points: (P ≠ Q ∧ Q ≠ R ∧ P ≠ R) := begin
+      exact h3a3.1,
+    end,
+    refine Exists.intro P _,
+    refine Exists.intro Q _,
+    refine Exists.intro R _,
+    exact h3a3.1,
+  end,
+  cases h3 with P h3_1,
+  cases h3_1 with Q h3_2,
+  cases h3_2 with R h3_3,
+-- By A2 there is a line l through P, parallel to the line QR joining Q, and R, which
+-- exists by A1. [we'll call l by the name k -- jfh]
+  have hk: ∃ kp:β , affine_geom.parallel α kp (affine_geom.join Q R) :=
+  begin
+    -- let QR := affine_geom.join Q R,
+    -- let k := affine_geom.find_parallel P QR,
+    have hz: (affine_geom.meets P (affine_geom.find_parallel P (affine_geom.join Q R))) ∧ (affine_geom.parallel α (affine_geom.find_parallel P (affine_geom.join Q R)) (affine_geom.join Q R)) := 
+    begin
+      apply affine_geom.a2b,
+      refl,
+    end,
+
+  end,
 end
 
 
