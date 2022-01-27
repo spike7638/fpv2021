@@ -106,6 +106,7 @@ variables {α β : Type} [G: (affine_geom α β) ]
 
 example (p q:Prop):  (p -> q) -> (¬ q ->  ¬ p) := 
 begin
+  -- suggest,
   exact mt,
 end
 
@@ -152,34 +153,6 @@ begin
   },
   {
     exact parallel_symmetric,
-    -- rw [symmetric],
-    -- intro k,
-    -- intro n,
-    -- by_cases k=n,
-    -- {
-    --   intro hp,
-    --   rw h,
-    --   apply G.parallel_prop_1,
-    -- },
-    -- intro hpkn,
-    -- have kNEn: k ≠ n := h,
-    -- have ha : (k ≠ n) ∧ (affine_geom.parallel α k n) := 
-    -- begin
-    --     exact ⟨h, hpkn⟩,
-    -- end,
-    -- have hr: (∀ P : α, (¬ ((affine_geom.meets P k) ∧ (affine_geom.meets P n)))) :=
-    -- begin
-    --   refine affine_geom.parallel_prop_2 k n ha, 
-    -- end,
-
-    -- have: (affine_geom.parallel α n k) := 
-    -- begin
-    --   refine affine_geom.parallel_prop_3 n k _,
-    --   intro P,
-    --   specialize hr P,
-    --   cc,
-    -- end,
-    -- exact this,
   },
   {
 -- Paraphrasing Hartshorne: "If k = n, there is nothing to prove. If k ≠ n, and there is 
@@ -225,10 +198,6 @@ begin
         rw [e1, e2],
       end,
       exact hqs e3,
-      -- (a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
-      -- have hh : affine_geom.parallel α q s :=
-      --   sorry,
-
     }
   }
 
@@ -236,46 +205,6 @@ begin
 end
 
 .
---   {
---     rw [transitive],
---     intro k,
---     intro m,
---     intro n,
---     intro hp1,
---     intro hp2,
---     by_cases hkn: k = n ,
---     {
---       rw [hkn],
---       apply G.parallel_prop_1,
---     },
---     {
---         by_cases hkm: k = m,
---         {
---           have hh: m = k, by cc,
---           rw [hh] at hp2,
---           assumption,
---         },
---         {
---           by_cases hmn: m = n,
---           {
---             rewrite [hmn] at hp1,
---             assumption,
---           },
---           {
---             apply G.parallel_prop_2 k n hkn,
-            
--- -- reminders:
--- -- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (meets P k) ↔  ¬ (meets P n)))
--- -- -- lines that have no shared points are parallel. 
--- -- (parallel_prop_3 : ∀ k n, (∀ P, (meets P k) ↔  ¬ (meets P n)) → (parallel k n)  ) 
-
---           }
---         },
---     }
-
-
---   }  -- transitive
--- end
 
 /- 
 The first example given is that the Euclidean plane is an affine geometry. I'm going to skip that one
@@ -570,292 +499,196 @@ def find_parallelA4 : A4 → A4Lines → A4Lines
     apply hh,
   end
 }
-
 #check A4affine_geom 
 
--- @[instance] def A4affine_geom : affine_geom A4 A4Lines :=
--- {
---   meets       := meetsA4,
---   join        := joinA4,
---   join_contains := begin
---     intro p, 
---     intro q,
---     cases p,
---     repeat {
---       cases q,
---       repeat {
---         refl,
---         cc
---       },
---       repeat {
---         rw [joinA4, meetsA4],
---         cc,
---       },
---       repeat {
---         rw [joinA4, meetsA4],
---         rw [meetsA4],
---         cc,
---       }
---     },
---   end,  
---   join_unique   := begin
---     intro p, 
---     intro q, 
---     intro k,
---     cases p,
---     repeat {
---       cases q,
---       {
---         rw [joinA4], 
---         simp,
---         cases k,
---         repeat {
---           cc,
---         },
---       },
---     },
---     repeat {
---       rw [joinA4], 
---       simp,
---       cases k,
---       repeat {
---         rw [meetsA4],
---         simp,
---       },
---       repeat {
---         cc,
---       },
---       repeat {
---         rw [meetsA4],
---         cc,
---       },
---     },
---     repeat {
---       cases q,
---       repeat {
---         rw [joinA4],
---         cases k,
---         repeat {
---           rw [meetsA4],
---           cc,
---         },
---         repeat {
---           simp,
---           rw [meetsA4],
---           rw [meetsA4],
---           cc,
---         },
---       },
---     },
---   end,
---   parallel      := parallelA4,
 
---   parallel_prop_1 := begin 
---     intros k,
---     cases k,
---     repeat {
---       rw [parallelA4],
---       cc,
---     },
---   end,
---   parallel_prop_2 := begin
-    
---       intros k n P,
---       cases k,
---       repeat {
---         cases n,
---         repeat {
---           cases P,
---           repeat {
---             rw [meetsA4, parallelA4],
---             cc,
---           },
---           cc,
---         },
---         repeat {cc},
---       },
---     repeat {
---       rw [meetsA4, parallelA4],
---       simp,
---       rw [meetsA4],
---       cc,
---     },
---     repeat {
---       simp,
---       rw [parallelA4],
---       intro h,
---       exfalso, 
---       assumption,     
---     },
---     repeat {
---       simp,
---       rw [parallelA4],
---       intro h,
---       cases P,
---       repeat{
---         rw [meetsA4],
---         rw [meetsA4],
---         cc,
---       }
---     },
---     repeat {
---       intro P,
---       cases P,
---       {
---         rw [parallelA4] at P,
---         rw [meetsA4],
---         exfalso,
---         cc,
---       },
---     },
---     repeat {
---       rw [parallelA4] at P,
---       rw [meetsA4],
---       simp,
---     },
---     repeat{
---       rw [meetsA4],
---       simp,
---     },
---     repeat{
---       simp at P,
---       exfalso,
---       assumption,
---     },
---     repeat {
---       simp at P,
---       intro S,
---       cases S,
---       rw [meetsA4],
---       rw [meetsA4],
---       simp,
---     },
---     repeat {
---       rw[meetsA4],
---       simp,
---     },
---   end,
---   parallel_prop_3 := begin 
---     intros k,
---     intros n,
---     cases k,
---     cases n,
---     repeat {
---       rw [parallelA4, meetsA4],
---       simp, 
---       cc,
---     },
---     repeat { 
---       intro P,
---       intro S,
---       rw [parallelA4],
---       simp,
---     },
---     repeat {
---       simp,
---       by cc,
---     },
---     repeat {
---       simp,
---       cc,
---     },
---     repeat {
---       simp,
---       intro t,
---       rw [parallelA4],
---       cc,
---     },
---     repeat {
---       intro hp, 
---       specialize hp A4.P,
---       rw [meetsA4] at hp,
---       rw [meetsA4] at hp,
---       cc,
---       -- have (∀ P : A4, (meetsA4 P A4Lines.PQ ↔ ¬meetsA4 P A4Lines.PR)),
---     },
---     {
---       intro hp, 
---       specialize hp A4.Q,
---       rw [meetsA4] at hp,
---       rw [meetsA4] at hp,
---       cc,
---     },
---     {
---       intro hp, 
---       specialize hp A4.Q,
---       rw [meetsA4] at hp,
---       rw [meetsA4] at hp,
---       cc,
---     },
---     {
---       intro hp, 
---       rw [parallelA4],
---       cc,
---     },
---     repeat {
---       cases n,
---       intro hp,
---       specialize hp A4.P,
---       rw [meetsA4] at hp,
---       rw [meetsA4] at hp,
---       rw [parallelA4],
---       cc,
---     },
---     {
---       intro hp,
---       rw [parallelA4],
---       cc,
---     },
---     tautos,
+-- Example. The ordinary plane, known to us from Euclidean geometry, satisfies the axioms A1–A3, and therefore is an affine plane.
+-- STILL DO TO
+
+-- Proposition 1.2 Two distinct lines have at most one point in common.
+-- For if l, m both pass through two distinct points P, Q, then by axiom A1,
+-- l = m.
+
+lemma one_shared_point (r s: β) (P Q: α ) [G: (affine_geom α β) ]: 
+r ≠ s ∧ 
+affine_geom.meets P r ∧ affine_geom.meets P s ∧ 
+affine_geom.meets Q r ∧ affine_geom.meets Q s → 
+P = Q :=
+begin
+  intro h1,
+  apply classical.by_contradiction,
+  intro hPneQa,
+  have hPneQ: P ≠ Q := begin exact hPneQa, end,
+  have hrs: r ≠ s := h1.1,
+  have hPr: affine_geom.meets P r := (h1.2).1,
+  have hPs: affine_geom.meets P s := (h1.2).2.1,
+  have hQr: affine_geom.meets Q r := (h1.2).2.2.1,
+  have hQs: affine_geom.meets Q s := (h1.2).2.2.2,
+  -- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+  have hru:  ((P ≠ Q) ∧ (affine_geom.meets P r) ∧ (affine_geom.meets Q r)) := begin 
+    cc,    
+  end,
+  have hrru:  r = affine_geom.join P Q :=
+  begin
+    apply (affine_geom.join_unique P Q r hru),
+  end, 
+  have hsu:  ((P ≠ Q) ∧ (affine_geom.meets P s) ∧ (affine_geom.meets Q s)) := begin 
+    cc,    
+  end,
+  have hssu:  s = affine_geom.join P Q :=
+  begin
+    apply (affine_geom.join_unique P Q s hsu),
+  end, 
+  have hreqs: r = s :=
+  begin
+    rw [hrru, hssu],
+  end,
+  exact hrs hreqs,
+end
+
+-- @[class] structure affine_geom (α β  : Type u) :=
+-- (meets           : α → β  → Prop) -- a point P:α is on a line k:β  
+-- (join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
+-- (join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
+-- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+-- (parallel        : β → β → Prop)
+-- (parallel_prop_1 :  ∀ k, parallel k k) 
+-- -- distinct lines that are parallel have no shared points
+-- --(parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (((meets P k) →  ¬ (meets P n)))))
+-- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (¬ ((meets P k) ∧ (meets P n)))))
+-- -- lines that have no shared points are parallel. 
+-- (parallel_prop_3 : ∀ k n, (∀ P:α , ((meets P k) →  ¬ (meets P n)) ) → (parallel k n)  ) 
+-- (find_parallel   : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
+-- (a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
+-- (a3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
+
+lemma one_shared_line (r s: β) (P Q: α ) [G: (affine_geom α β) ]: 
+P ≠ Q ∧ 
+affine_geom.meets P r ∧ affine_geom.meets P s ∧ 
+affine_geom.meets Q r ∧ affine_geom.meets Q s → 
+r = s :=
+begin
+  intro h1,
+  apply classical.by_contradiction,
+  intro hrnesa,
+  have hrnes: r ≠ s := begin exact hrnesa, end,
+  have hPQ: P ≠ Q := h1.1,
+  have hPr: affine_geom.meets P r := (h1.2).1,
+  have hPs: affine_geom.meets P s := (h1.2).2.1,
+  have hQr: affine_geom.meets Q r := (h1.2).2.2.1,
+  have hQs: affine_geom.meets Q s := (h1.2).2.2.2,
+  -- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+  have hru:  ((P ≠ Q) ∧ (affine_geom.meets P r) ∧ (affine_geom.meets Q r)) := begin 
+    cc,    
+  end,
+  have hrru:  r = affine_geom.join P Q :=
+  begin
+    apply (affine_geom.join_unique P Q r hru),
+  end, 
+  have hsu:  ((P ≠ Q) ∧ (affine_geom.meets P s) ∧ (affine_geom.meets Q s)) := begin 
+    cc,    
+  end,
+  have hssu:  s = affine_geom.join P Q :=
+  begin
+    apply (affine_geom.join_unique P Q s hsu),
+  end, 
+  have hreqs: r = s :=
+  begin
+    rw [hrru, hssu],
+  end,
+  exact hrnes hreqs,
+end
+-- Example. An affine plane has at least four points. 
+-- There is an affine plane with four points. (done above)
+-- Indeed, by A3 there are three non-collinear points. Call them P, Q, R. By
+-- A2 there is a line l through P, parallel to the line QR joining Q, and R, which
+-- exists by A1. Similarly, there is a line m k P Q, passing through R.
+-- Now l is not parallel to m (l ∦ m). For if it were, then we would have
+-- P Q k m k l k QR
+-- 2
+-- and hence P Q k QR by Proposition 1.1. This is impossible, however, because
+-- P Q 6= QR, and both contain Q.
+-- Hence l must meet m in some point S.
+-- m BA = 0.35 cm
+-- Arrows take length 0.35cm
+-- S
+-- B A
+-- Q R
+-- P
+-- Since S lies on m, which is parallel to P Q,
+-- and different from P Q, S does not lie on
+-- P Q, so S 6= P, and S 6= Q. Similarly S 6= R.
+-- Thus S is indeed a fourth point. This proves
+-- the first assertion.
+
+-- FAILED attempt to mimic the proof above; stalled out at going from "there exist three noncollinear points" to  
+-- "let's call them A,B,C" (or better still, P, Q, R)
+
+lemma four_points [G: (affine_geom α β) ]: 
+∃ P Q R S : α,  P ≠ Q ∧  P ≠ R ∧  P ≠ S ∧  Q ≠ R ∧ Q ≠ S ∧ R ≠ S
+:=
+begin
+  have h3: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) := 
+  begin
+    have h3a: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ affine_geom.meets P (affine_geom.join Q R))) :=
+    begin
+      exact G.a3 , -- tried "affine_geom.a3 and that failed. because it cou;dn't guess \b apparently"
+    end,
+    intro P:α ,
+    specialize h3a,
+    specialize h3a (P Q R),
+  end
+end
 
 
---   end,
---   find_parallel := find_parallelA4,
---   a2 := begin
---     intros P k n,
---     cases P,
---     repeat{cases k,
---     repeat {cases n,
---     repeat {
---       rw [meetsA4, parallelA4, find_parallelA4],
---       simp,
---     },},},
---   end,
---   a3 := begin
---     have h1:A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.P ≠ A4.R, by simp,
---     have h2:(¬ meetsA4 A4.P (joinA4 A4.Q A4.R)), by begin 
---       rw [joinA4],
---       intro h,
---       rw [meetsA4] at h,
---       assumption,
---     end,
---     have hh: (A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.P ≠ A4.R) ∧ ¬ meetsA4 A4.P (joinA4 A4.Q A4.R), begin
---       apply and.intro h1 h2,
---     end,
---     -- have hh2: A4.P ≠ A4.Q ∧ A4.Q ≠ A4.R ∧ A4.R ≠ A4.P ∧ ¬ meetsA4 A4.P (joinA4 A4.Q A4.R), begin
---     --   by simp,
---     -- end,
-    
---     apply exists.intro A4.P,
---     apply exists.intro A4.Q,
---     apply exists.intro A4.R,
---     apply hh,
---   end
--- }
-#check A4affine_geom
+-- Now consider the lines P R and QS. It
+-- may happen that they meet (for example in
+-- the real projective plane they will (proof?)). On the other hand, it is consistent
+-- with the axioms to assume that they do not meet.
+-- In that case we have an affine plane consisting of four points P, Q, R, S and
+-- six lines P Q, P R, P S, QR, QS, RS, and one can verify easily that the axioms
+-- A1–A3 are satisfied. This is the smallest affine plane.
+-- Definition. A pencil of lines is either a) the set of all lines passing through
+-- some point P, or b) the set of all lines parallel to some line l. In the second case
+-- we speak of a pencil of parallel lines.
+-- Definition. A one-to-one correspondence between two sets X and Y is
+-- a mapping T : X → Y (i.e. a rule T, which associates to each element x of the
+-- set X an element T(x) = y ∈ Y ) such that x1 6= x2 ⇒ T x1 6= T x2, and ∀y ∈ Y ,
+-- ∃x ∈ X such that T(x) = y.
 
-
--- lemma card_units_lt (M₀ : Type*) [monoid_with_zero M₀] [nontrivial M₀] [fintype M₀] :
---   fintype.card (units M₀) < fintype.card M₀ :=
--- fintype.card_lt_of_injective_of_not_mem (coe : units M₀ → M₀) units.ext not_is_unit_zero
-
+-- Some exercises from the back of the book:
+-- 1. Show that any two pencils of parallel lines in an affine plane have the
+-- same cardinality (i.e. that one can establish a one-to-one correspondence
+-- between them). Show that this is also the cardinality of the set of points
+-- on any line.
+-- 2. If there is a line with exactly n points, show that the number of points in
+-- the whole affine plane is n^2
+.
 end affine_geometry 
 end geom
+
+-- @[class] structure affine_geom (α β  : Type u) :=
+-- (meets           : α → β  → Prop) -- a point P:α is on a line k:β  
+-- (join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
+-- (join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
+-- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+-- (parallel        : β → β → Prop)
+-- (parallel_prop_1 :  ∀ k, parallel k k) 
+-- -- distinct lines that are parallel have no shared points
+-- --(parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (((meets P k) →  ¬ (meets P n)))))
+-- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (¬ ((meets P k) ∧ (meets P n)))))
+-- -- lines that have no shared points are parallel. 
+-- (parallel_prop_3 : ∀ k n, (∀ P:α , ((meets P k) →  ¬ (meets P n)) ) → (parallel k n)  ) 
+-- (find_parallel   : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
+-- (a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
+-- (a3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
+
+
 
 -- Notes from Dhruv
 -- cc often slow; best to try to do things directly if you can. 
 -- 
--- use "." to split sections ad update locally only. 
+-- use "." to split sections and update locally only. 
 
 -- To figure out how to do a proof...write an example that has the "shape" of the thing you 
 -- want to do, like "I wanna do a contrapositive proof", and then do a library_search:
@@ -868,7 +701,7 @@ end geom
 -- begin
 --   exact mt,
 -- end-- 
--- it doesn't work, because of the forall; so try instead, moving the "forall" to a paramater:
+-- it doesn't work, because of the forall; so try instead, moving the "forall" to a parameter:
 
 -- example (p q:Prop):  (p -> q) -> (¬ q ->  ¬ p) := 
 -- begin
