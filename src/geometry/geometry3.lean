@@ -49,21 +49,6 @@ NB: Hartshorne uses the letter "l" to denote lines. I'll almost always avoid thi
 letter l looks too much like 1 for my comfort. 
  -/
 
-example {p q:Prop}: (p ∧ q) ↔ (q ∧ p) := and.comm
-example {p q:ℕ → Prop}: (∀ n, ((p n) ∧ (q n))) ↔ (∀ n,((q n) ∧ (p n))) := 
-begin 
-  refine iff.symm _,
-  refine (forall_congr _).symm,
-  intro,
-  apply iff.intro,
-  { 
-    exact @and.symm (p a) (q a),
-  },
-  {
-    exact @and.symm (q a) (p a),
-  }
-end
-
 @[class] structure affine_geom (α β  : Type u) :=
 (meets           : α → β  → Prop) -- a point P:α is on a line k:β  
 (join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
@@ -121,12 +106,12 @@ lemma parallel_symmetric:
     {
       intro hp,
       rw h,
-      apply G.parallel_prop_1,
+      apply G.parallel_prop_1, -- NOTE use of "G.parallel_prop_1" here, 
     },
     intro hpkn,
     have kNEn: k ≠ n := h,
-    have ha : (k ≠ n) ∧ (affine_geom.parallel α k n) := 
-    begin
+    have ha : (k ≠ n) ∧ (affine_geom.parallel α k n) := -- I cannot replace "affine_geom.parallel" here with G.parallel. Why??
+    begin 
         exact ⟨h, hpkn⟩,
     end,
     have hr: (∀ P : α, (¬ ((affine_geom.meets P k) ∧ (affine_geom.meets P n)))) :=
@@ -143,6 +128,10 @@ lemma parallel_symmetric:
     end,
     exact this,
   end
+
+-- Is there a way to say "every mention of "meets" and "parallel" mean affine_geom.meets or affine_geom.parallel from now on? 
+
+
 
 lemma parallel_equivalence:
 --   equivalence (G.parallel α β)    :=
@@ -335,7 +324,6 @@ def find_parallelA4 : A4 → A4Lines → A4Lines
 | A4.P A4Lines.PS := A4Lines.PS
 | A4.P A4Lines.QR := A4Lines.PS
 | A4.P A4Lines.QS := A4Lines.PR 
-| A4.P A4Lines.PR := A4Lines.PR
 | A4.P A4Lines.RS := A4Lines.PQ
 | A4.Q A4Lines.PQ := A4Lines.PQ
 | A4.Q A4Lines.PR := A4Lines.QS 
@@ -635,45 +623,518 @@ end
 -- FAILED attempt to mimic the proof above; stalled out at going from "there exist three noncollinear points" to  
 -- "let's call them A,B,C" (or better still, P, Q, R)
 
-lemma four_points [G: (affine_geom α β) ]: 
-∃ P Q R S : α,  P ≠ Q ∧  P ≠ R ∧  P ≠ S ∧  Q ≠ R ∧ Q ≠ S ∧ R ≠ S
-:=
-begin
-  have h3: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) := 
-  begin
-    have h3a: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ affine_geom.meets P (affine_geom.join Q R))) :=
-    begin
-      exact G.a3 , -- tried "affine_geom.a3 and that failed. because it couldn't guess \b apparently"
-    end,
-    cases h3a with P h3a1,
-    cases h3a1 with Q h3a2,
-    cases h3a2 with R h3a3,
-    have h3points: (P ≠ Q ∧ Q ≠ R ∧ P ≠ R) := begin
-      exact h3a3.1,
-    end,
-    refine Exists.intro P _,
-    refine Exists.intro Q _,
-    refine Exists.intro R _,
-    exact h3a3.1,
-  end,
-  cases h3 with P h3_1,
-  cases h3_1 with Q h3_2,
-  cases h3_2 with R h3_3,
--- By A2 there is a line l through P, parallel to the line QR joining Q, and R, which
--- exists by A1. [we'll call l by the name k -- jfh]
-  have hk: ∃ kp:β , affine_geom.parallel α kp (affine_geom.join Q R) :=
-  begin
-    -- let QR := affine_geom.join Q R,
-    -- let k := affine_geom.find_parallel P QR,
-    have hz: (affine_geom.meets P (affine_geom.find_parallel P (affine_geom.join Q R))) ∧ (affine_geom.parallel α (affine_geom.find_parallel P (affine_geom.join Q R)) (affine_geom.join Q R)) := 
-    begin
-      apply affine_geom.a2b,
-      refl,
-    end,
+-- lemma four_points [G: (affine_geom α β) ]: 
+-- ∃ P Q R S : α,  P ≠ Q ∧  P ≠ R ∧  P ≠ S ∧  Q ≠ R ∧ Q ≠ S ∧ R ≠ S
+-- :=
+-- begin
+--   have h3: ∃ P Q R:α , (P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R) := 
+--   begin
+--     have h3a: ∃ P Q R:α , (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ affine_geom.meets P (affine_geom.join Q R))) :=
+--     begin
+--       exact G.a3 , -- tried "affine_geom.a3 and that failed. because it couldn't guess \b apparently"
+--     end,
+--     cases h3a with P h3a1,
+--     cases h3a1 with Q h3a2,
+--     cases h3a2 with R h3a3,
+--     have h3points: (P ≠ Q ∧ Q ≠ R ∧ P ≠ R) := begin
+--       exact h3a3.1,
+--     end,
+--     refine Exists.intro P _,
+--     refine Exists.intro Q _,
+--     refine Exists.intro R _,
+--     exact h3a3.1,
+--   end,
+--   cases h3 with P h3_1,
+--   cases h3_1 with Q h3_2,
+--   cases h3_2 with R h3_3,
+-- -- By A2 there is a line l through P, parallel to the line QR joining Q, and R, which
+-- -- exists by A1. [we'll call l by the name k -- jfh]
+--   have hk: ∃ kp:β  , affine_geom.parallel α  kp (affine_geom.join Q R) :=
+--   begin
+--     -- let QR := affine_geom.join Q R,
+--     -- let k := affine_geom.find_parallel P QR,
+--     have hz: (affine_geom.meets P (affine_geom.find_parallel P (affine_geom.join Q R))) ∧ (affine_geom.parallel α (affine_geom.find_parallel P (affine_geom.join Q R)) (affine_geom.join Q R)) := 
+--     begin
+--       apply affine_geom.a2b,
+--       refl,
+--     end,
 
-  end,
+--   end,
+-- end
+
+-- Want to say: if R is on join P Q, and P,Q,R distinct, then join R Q = join P Q. How to express neatly? 
+
+lemma same_joins [G : (affine_geom α β)]:
+∀ P  Q  R:α ,∀ m:β , (P ≠ Q ∧  P ≠ R ∧  Q ≠ R ∧ (m = affine_geom.join P Q) ∧ (affine_geom.meets R m)) → (affine_geom.join Q R = m) :=
+begin
+intros P Q R m h,
+have hPQ: P ≠ Q := h.1,
+have hPR: P ≠ R := h.2.1,
+have hQR: Q ≠ R := h.2.2.1,
+have hm: m = affine_geom.join P Q := h.2.2.2.1,
+have hmeets: affine_geom.meets R m := h.2.2.2.2,
+clear h,
+-- line PQ contains P, R, so it's join P R
+-- line PQ is just m, so m is join P R. 
+let PQ : β := affine_geom.join P Q,
+have hPQ : PQ = affine_geom.join P Q := rfl,
+have RPQ: affine_geom.meets R PQ := by cc,
+have QPQa: affine_geom.meets P PQ ∧ affine_geom.meets Q PQ := 
+begin
+  apply affine_geom.join_contains P Q,
+end,
+have QPQ: affine_geom.meets Q PQ := QPQa.2,
+
+let QR : β := affine_geom.join Q R,
+have hQR : QR = affine_geom.join Q R := rfl,
+have hz : affine_geom.meets Q QR ∧ affine_geom.meets R QR :=
+begin
+  apply affine_geom.join_contains,
+end,
+have QQR: affine_geom.meets Q QR := hz.1,
+have RQR: affine_geom.meets R QR := hz.2,
+apply eq.symm,
+rw hm,
+apply (affine_geom.join_unique Q R PQ),
+tauto,
 end
 
+#check same_joins
+
+lemma join_symm [G : (affine_geom α β)]: ∀ A B:α,  ((affine_geom.join A B):β)   = (affine_geom.join B A) := 
+begin
+  intros A B,
+  by_cases A = B,
+  {
+    rw [h],
+  },
+  {
+    have hAB: (affine_geom.meets A (affine_geom.join A B)) ∧ (affine_geom.meets B (affine_geom.join A B)) := (affine_geom.join_contains A B),
+    have hBA: (affine_geom.meets B (affine_geom.join B A)) ∧ (affine_geom.meets A (affine_geom.join B A)) := (affine_geom.join_contains B A),
+    have AAB: (affine_geom.meets A ((affine_geom.join A B):β )) := hAB.1,
+    have BAB: (affine_geom.meets B ((affine_geom.join A B):β) ) := hAB.2,
+    have ABA: (affine_geom.meets A (affine_geom.join B A)) := hBA.2,
+    have BBA: (affine_geom.meets B (affine_geom.join B A)) := hBA.1,
+    have qA:  (affine_geom.meets A ((affine_geom.join A B):β)) ∧ (affine_geom.meets A ((affine_geom.join B A):β ))  :=
+    begin
+      apply and.intro AAB ABA,
+    end,
+    have qB:  (affine_geom.meets B ((affine_geom.join A B):β)) ∧ (affine_geom.meets B ((affine_geom.join B A):β ))  :=
+    begin
+      apply and.intro BAB BBA,
+    end,
+    have q: (A ≠ B) ∧ (affine_geom.meets A ((affine_geom.join A B):β )) ∧ (affine_geom.meets A ((affine_geom.join B A):β )) ∧ 
+                   (affine_geom.meets B ((affine_geom.join A B):β )) ∧ (affine_geom.meets B ((affine_geom.join B A):β )) :=
+    begin
+      simp [h],
+      simp [qA, qB],
+    end,
+    apply (one_shared_line ((affine_geom.join A B):β ) ((affine_geom.join B A):β ) A B),
+    exact q,
+  }
+end
+
+.
+-- Four points, as done by Dhruv (and finished up by Spike)
+lemma four_points_dhruv [G : (affine_geom α β)]:
+∃ P Q R S : α,  P ≠ Q ∧  P ≠ R ∧  P ≠ S ∧  Q ≠ R ∧ Q ≠ S ∧ R ≠ S :=
+begin
+  cases G.a3 with P h3_1, cases h3_1 with Q h3_2, cases h3_2 with R h3_3,
+  have hPnotQR: ¬affine_geom.meets P (affine_geom.join Q R) := h3_3.2,
+  let QR : β := affine_geom.join Q R,
+  let l : β := affine_geom.find_parallel P QR,
+  have hQR : QR = affine_geom.join Q R := rfl, 
+  have hl : l = affine_geom.find_parallel P QR := rfl,
+  rw ← hQR at *,
+
+  let PQ : β := affine_geom.join P Q,
+  let m : β := affine_geom.find_parallel R PQ,
+  have hPQ : PQ = affine_geom.join P Q := rfl,
+  have hm : m = affine_geom.find_parallel R PQ := rfl,
+  rw ← hPQ at *,
+
+  have hmnl : ¬ affine_geom.parallel α m l :=
+  begin 
+    intro hml,
+    have hPQpQR : affine_geom.parallel α PQ QR :=
+    begin 
+      apply parallel_equivalence.2.2, -- transitivity
+      {exact parallel_equivalence.2.1 (affine_geom.a2b R PQ m hm).2,},
+      {apply parallel_equivalence.2.2,
+      {exact hml,},
+      {exact (affine_geom.a2b P QR l hl).2}},
+    end,
+    have hPQnQR : PQ ≠ QR :=
+    begin 
+      intro h, have := (affine_geom.join_contains P Q).1, rw ← hPQ at *, rw h at this,
+      exact h3_3.2 this,
+    end,
+    have hQmeet : ((affine_geom.meets Q PQ) ∧ (affine_geom.meets Q QR)) :=
+    begin
+      split,
+      {rw hPQ, exact (affine_geom.join_contains P Q).2,},
+      {rw hQR, exact (affine_geom.join_contains Q R).1,},
+    end,
+    exact (affine_geom.parallel_prop_2 PQ QR ⟨hPQnQR, hPQpQR⟩ Q) hQmeet,
+  end,
+  
+  have heS : ∃ S : α , affine_geom.meets S m ∧ affine_geom.meets S l :=
+  begin 
+    apply classical.by_contradiction, simp, intro h,
+    exact hmnl (affine_geom.parallel_prop_3 m l h),
+  end,
+  cases heS with S hS,
+
+  apply exists.intro P, apply exists.intro Q, apply exists.intro R, apply exists.intro S,
+  repeat {split}, exact h3_3.1.1, 
+  exact h3_3.1.2.2,
+  {  
+-- Since S lies on m, which is parallel to P Q, and different from P Q, S does not lie on
+-- P Q, so S != P...
+    begin
+      have hs1: affine_geom.meets S m := hS.1,
+      have hmpq1: (affine_geom.meets R m)∧ (affine_geom.parallel α m PQ) := begin
+        apply (affine_geom.a2b R PQ m hm),
+      end,
+      have hmpqr: (affine_geom.parallel α m PQ) := hmpq1.2,
+
+-- show R is on m
+      have hmPQ: ¬ (m = PQ) := 
+      have hRma: affine_geom.meets R m  ∧ affine_geom.parallel α m PQ:=
+      begin
+        apply (affine_geom.a2b R PQ m),
+        exact hm,
+      end,
+      have hRm: affine_geom.meets R m := by exact(hRma.1),
+-- Show R is not on PQ (else they'd be collinear)
+      have hRnPQ: ¬ affine_geom.meets R PQ :=
+        assume hhRPQ: affine_geom.meets R PQ,
+        show false, from
+        begin
+          have PQQR: affine_geom.join Q R = PQ := 
+          begin
+            apply (same_joins P Q R PQ),
+            simp [h3_3.1],
+            exact hhRPQ,
+          end,
+          have hQPQa: affine_geom.meets (P:α) ((affine_geom.join P (Q:α )):β)  ∧ affine_geom.meets Q ((affine_geom.join P Q):β) :=
+          begin
+            apply (affine_geom.join_contains P Q),
+          end,
+          have hPPQa: affine_geom.meets P ((affine_geom.join P Q):β) := hQPQa.1,
+          have hPQa:  affine_geom.join P Q = PQ := by simp, 
+          have hPPQ: affine_geom.meets P (PQ:β) := hQPQa.1,
+          have hPPQ: affine_geom.meets P (QR:β) := by cc,
+          have hnPPq: ¬ affine_geom.meets P (QR:β) := h3_3.2,
+          cc,
+        end,
+--         same_joins [G : (affine_geom α β)]:
+-- ∀ P  Q  R:α ,∀ m:β , (P ≠ Q ∧  P ≠ R ∧  Q ≠ R ∧ (m = affine_geom.join P Q) ∧ (affine_geom.meets R m)) → (affine_geom.join Q R = m) :=
+
+-- if m = PQ, we've get R is on PQ. contradition
+-- hence m <> PQ, and m || PQ, so they share no points
+-- S is on m, and P is on PQ
+-- suppose S = P; then m and PQ share a point. Contradiction.
+-- hence S <> P. Whew!
+
+      assume hh: m = PQ, --contradiction hyp
+      show false, from
+      begin
+        -- R is on m
+        have hRmz: (affine_geom.meets R m) ∧ (affine_geom.parallel α m PQ):=
+        begin
+          apply (affine_geom.a2b R PQ m),
+          exact hm,
+        end,
+        have hRm: (affine_geom.meets R m) := hRmz.1,
+        -- R is not on PQ [done" hPnotQR]
+        have hRm: (affine_geom.meets R PQ) := 
+        begin
+          rw hh at hRm,
+          exact hRm,
+        end,
+        tauto,
+      end,
+-- hence m <> PQ (above) and m || PQ, 
+-- so they share no points
+-- S is on m, and P is on PQ
+-- suppose S = P; then m and PQ share a point. Contradiction.
+-- hence S <> P. Whew!
+      have hmPQz: affine_geom.meets R m ∧ affine_geom.parallel α m PQ :=
+      begin
+        apply (affine_geom.a2b R PQ m),
+        exact hm,
+        -- (a2b              : ∀ P k n, (n = find_parallel P k) → ((meets P n ) ∧ (parallel n k)))
+      end,
+      have hmPQy: affine_geom.parallel α m PQ := hmPQz.2,
+-- hence m <> PQ and m || PQ (above)
+-- so they share no points
+      have hh: (m ≠ PQ ∧ affine_geom.parallel α  m PQ) :=
+      begin
+        simp [hmPQ, hmPQy],
+      end, 
+      have hnosharemPQ: ∀ X:α, ¬ ((affine_geom.meets X m) ∧ (affine_geom.meets X PQ)) := 
+      begin
+        apply (affine_geom.parallel_prop_2 m PQ hh),
+      end,
+-- S is on m, and P is on PQ
+      have h1: ¬ ((affine_geom.meets S m) ∧ (affine_geom.meets S PQ)) := (hnosharemPQ S),
+      simp [hs1] at h1,
+      have h2z: (affine_geom.meets P PQ) ∧ (affine_geom.meets Q PQ) := (affine_geom.join_contains P Q),
+      have h2: (affine_geom.meets P PQ) := h2z.1,
+-- suppose S = P; then m and PQ share a point. Contradiction.
+      assume hC: P = S,
+      show false, from
+      begin
+        simp [hC] at h2,
+        tauto,
+      end,
+-- hence S <> P. Whew!
+    end
+  },
+  exact h3_3.1.2.1,
+  {  
+-- Since S lies on m, which is parallel to P Q, and different from P Q, S does not lie on
+-- P Q, so S != P...
+    begin
+      have hs1: affine_geom.meets S m := hS.1,
+      have hmpq1: (affine_geom.meets R m)∧ (affine_geom.parallel α m PQ) := begin
+        apply (affine_geom.a2b R PQ m hm),
+      end,
+      have hmpqr: (affine_geom.parallel α m PQ) := hmpq1.2,
+      --==========================================================
+      have hmPQ: ¬ (m = PQ) := 
+      have hRma: affine_geom.meets R m  ∧ affine_geom.parallel α m PQ:=
+      begin
+        apply (affine_geom.a2b R PQ m),
+        exact hm,
+      end,
+      have hRm: affine_geom.meets R m := by exact(hRma.1),
+-- Show R is not on PQ (else they'd be collinear)
+      have hRnPQ: ¬ affine_geom.meets R PQ :=
+        assume hhRPQ: affine_geom.meets R PQ,
+        show false, from
+        begin
+          have PQQR: affine_geom.join Q R = PQ := 
+          begin
+            apply (same_joins P Q R PQ),
+            simp [h3_3.1],
+            exact hhRPQ,
+          end,
+          have hQPQa: affine_geom.meets (P:α) ((affine_geom.join P (Q:α )):β)  ∧ affine_geom.meets Q ((affine_geom.join P Q):β) :=
+          begin
+            apply (affine_geom.join_contains P Q),
+          end,
+          have hPPQa: affine_geom.meets P ((affine_geom.join P Q):β) := hQPQa.1,
+          have hPQa:  affine_geom.join P Q = PQ := by simp, 
+          have hPPQ: affine_geom.meets P (PQ:β) := hQPQa.1,
+          have hPPQ: affine_geom.meets P (QR:β) := by cc,
+          have hnPPq: ¬ affine_geom.meets P (QR:β) := h3_3.2,
+          cc,
+        end,
+--         same_joins [G : (affine_geom α β)]:
+-- ∀ P  Q  R:α ,∀ m:β , (P ≠ Q ∧  P ≠ R ∧  Q ≠ R ∧ (m = affine_geom.join P Q) ∧ (affine_geom.meets R m)) → (affine_geom.join Q R = m) :=
+
+-- if m = PQ, we've get R is on PQ. contradition
+-- hence m <> PQ, and m || PQ, so they share no points
+-- S is on m, and P is on PQ
+-- suppose S = P; then m and PQ share a point. Contradiction.
+-- hence S <> P. Whew!
+
+      assume hh: m = PQ, --contradiction hyp
+      show false, from
+      begin
+        -- R is on m
+        have hRmz: (affine_geom.meets R m) ∧ (affine_geom.parallel α m PQ):=
+        begin
+          apply (affine_geom.a2b R PQ m),
+          exact hm,
+        end,
+        have hRm: (affine_geom.meets R m) := hRmz.1,
+        -- R is not on PQ [done" hPnotQR]
+        have hRm: (affine_geom.meets R PQ) := 
+        begin
+          rw hh at hRm,
+          exact hRm,
+        end,
+        tauto,
+      end,
+      --==========================================================
+      -- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (¬ ((meets P k) ∧ (meets P n)))))
+      have hsnotPQa: ¬ (affine_geom.meets S m ∧ affine_geom.meets S PQ) := 
+      begin
+        apply (affine_geom.parallel_prop_2 m PQ),
+        tauto,
+      end,
+      have hsnotPQ: ¬ affine_geom.meets S PQ := by cc,
+      have hPPQa: (affine_geom.meets P PQ) ∧ (affine_geom.meets Q PQ) := begin
+        apply affine_geom.join_contains P Q,
+      end,
+      have hPPq: (affine_geom.meets Q PQ) := by exact hPPQa.2,
+      show (¬ Q = S),
+      assume hh: Q = S,
+      show false, from
+      begin
+        rw hh at hPPq,
+        cc,
+      end,
+  end,  
+  },
+  {  
+-- Since S lies on l, which is parallel to Q R, and different from QR, S does not lie on QR
+-- But R DOES lie in QR, so S != R...
+    begin
+      have hs1: affine_geom.meets S l := hS.2,
+      have hlqr1: (affine_geom.meets P l) ∧ (affine_geom.parallel α l QR) := begin
+        apply (affine_geom.a2b P QR l hl), 
+      end,
+
+      have hlqrZ: (affine_geom.parallel α l QR) := hlqr1.2,
+      have hlQR: ¬ (l = QR) := 
+        have hPla: affine_geom.meets P l  ∧ affine_geom.parallel α l QR:=
+        begin
+          apply (affine_geom.a2b P QR l),
+          exact hl,
+        end,
+        have hPl: affine_geom.meets P l := by exact(hPla.1),
+-- Show P is not on QR (else they'd be collinear)
+        have hPnQR: ¬ affine_geom.meets P QR :=
+          assume hhPQR: affine_geom.meets P QR,
+          show false, from
+          begin
+            have PQQR: affine_geom.join Q P = QR := 
+            begin
+              apply (same_joins R Q P QR),
+            -- ∀ R  P  Q:α ,∀ m:β , (R ≠ P ∧  R ≠ Q ∧  P ≠ Q ∧ (m = affine_geom.join R P) ∧ (affine_geom.meets Q m)) → (affine_geom.join P Q = m) :=
+              have k1: ¬ R = P := begin
+                exact id (λ (ᾰ : R = P), false.rec false (hPnotQR hhPQR)),
+              end,
+              have k2: ¬ R = Q := begin
+                exact id (λ (ᾰ : R = Q), false.rec false (hPnotQR hhPQR)),
+              end,
+              have k3: ¬ Q = P:= 
+              begin
+                exact id (λ (ᾰ : Q = P), false.rec false (hPnotQR hhPQR)),
+              end,
+              simp [k1, k2, k3],
+              simp [hhPQR],
+              have hQRRQ: affine_geom.join Q R = affine_geom.join R Q :=
+              begin
+                have h1: (affine_geom.meets Q ((affine_geom.join Q R):β) )∧ (affine_geom.meets R ((affine_geom.join Q R):β)) := begin
+                  apply (affine_geom.join_contains Q R),
+                end,
+                have h2: (affine_geom.meets R ((affine_geom.join R Q):β) )∧ (affine_geom.meets Q ((affine_geom.join R Q):β)) := begin
+                  apply (affine_geom.join_contains R Q),
+                end,
+                have j1: (affine_geom.meets R ((affine_geom.join R Q):β) ) := h2.1; 
+                have j2: (affine_geom.meets Q ((affine_geom.join R Q):β) ) := h2.2; 
+                have j3: (affine_geom.meets Q ((affine_geom.join R Q):β) ) ∧ (affine_geom.meets R ((affine_geom.join R Q):β) ) := 
+                begin
+                  exact false.rec (affine_geom.meets Q (affine_geom.join R Q) ∧ affine_geom.meets R (affine_geom.join R Q)) (hPnotQR hhPQR),
+                end,
+                have h2a: (affine_geom.meets Q ((affine_geom.join R Q):β) )∧ (affine_geom.meets R ((affine_geom.join R Q):β)) := begin
+                  apply j3,
+                end,
+              
+                have h3:((Q ≠ R) ∧ (affine_geom.meets Q ((affine_geom.join R Q):β) ) ∧ (affine_geom.meets R ((affine_geom.join R Q):β))) :=
+                begin
+                  simp [h2a],
+                  tauto,
+                end,
+                apply eq.symm,
+                apply (affine_geom.join_unique Q R ((affine_geom.join R Q):β )),
+                exact h3,
+-- (join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
+-- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+              end,
+              apply hQRRQ,
+            end,
+            have hQPQa: affine_geom.meets (P:α) ((affine_geom.join P (Q:α )):β)  ∧ affine_geom.meets Q ((affine_geom.join P Q):β) :=
+            begin
+              apply (affine_geom.join_contains P Q),
+            end,
+            have hPPQa: affine_geom.meets P ((affine_geom.join P Q):β) := hQPQa.1,
+            have hPQa:  affine_geom.join P Q = QR := 
+            begin
+              rw hQR,
+              have u0: affine_geom.join Q R = ((affine_geom.join R Q):β ) := 
+              begin
+                 apply (join_symm Q R),
+              end,
+              -- lemma join_symm [G : (affine_geom α β)]: ∀ A B:α,  ((affine_geom.join A B):β)   = (affine_geom.join B A) := 
+              have u1: affine_geom.join P Q = ((affine_geom.join R Q):β ) := 
+              begin
+                rw ← u0,
+                rw ← hQR,
+                rw ← PQQR,
+                apply (join_symm P Q),
+
+              end, 
+              have u2: affine_geom.join R Q = ((affine_geom.join Q R):β ) := 
+              begin
+                apply (join_symm R Q),
+              end,
+              begin
+                rw [u1],
+                rw [u2],
+              end,
+
+            end,
+            have hPQRz: affine_geom.meets P (QR:β) := 
+            begin
+              rw hPQa at hPPQa,
+              exact hPPQa,
+            end,
+            have hPPQ: affine_geom.meets P (PQ:β) := by cc,
+            begin
+              cc,
+            end,
+          end,
+--         same_joins [G : (affine_geom α β)]:
+-- ∀ P  Q  R:α ,∀ m:β , (P ≠ Q ∧  P ≠ R ∧  Q ≠ R ∧ (m = affine_geom.join P Q) ∧ (affine_geom.meets R m)) → (affine_geom.join Q R = m) :=
+
+-- if l = QR, we've get P is on QR. contradition
+-- hence l <> QR, and l || QR, so they share no points
+-- S is on l, and R is on QR
+-- suppose S = R; then l and QR share a point. Contradiction.
+-- hence S <> R. Whew!
+
+      assume hh: l = QR, --contradiction hyp
+      show false, from
+      begin
+        -- P is on l
+        have hPlz: (affine_geom.meets P l) ∧ (affine_geom.parallel α l QR):=
+        begin
+          apply (affine_geom.a2b P QR l),
+          exact hl,
+        end,
+        have hPl: (affine_geom.meets P l) := hPlz.1,
+        -- P is not on QR [done: hPnQR]
+        rw hh at hPl,
+        tauto,
+      end,
+      --====================================================
+      -- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (¬ ((meets P k) ∧ (meets P n)))))
+      have hsnotQRa: ¬ (affine_geom.meets S l ∧ affine_geom.meets S QR) := 
+      begin
+        apply (affine_geom.parallel_prop_2 l QR),
+        tauto,
+      end,
+      have hsnotQR: ¬ affine_geom.meets S QR := by cc,
+      have hRQRa: (affine_geom.meets Q QR) ∧ (affine_geom.meets R QR) := begin
+        apply affine_geom.join_contains Q R,
+      end,
+      have hRQR: (affine_geom.meets R QR) := by exact hRQRa.2,
+      show (¬ R = S),
+      assume hh: R = S,
+      show false, from
+      begin
+        rw hh at hRQR,
+        cc,
+      end,
+    end,  
+  }, -- end of S ≠ R
+end
 
 -- Now consider the lines P R and QS. It
 -- may happen that they meet (for example in
