@@ -767,6 +767,11 @@ end
 -- 2. If there is a line with exactly n points, show that the number of points in
 -- the whole affine plane is n^2
 .
+
+-- TO FILL IN HERE: the quotient of lines by parallelism, call it type γ
+-- type Ppoint(α β ) contining Ordinary(α) | Extended(γ)
+-- type Pline(β) containing Extended(β,γ) | Infinity
+
 end affine_geometry 
 
 section projective_geometry
@@ -787,6 +792,13 @@ variables {α' β' : Type} [affine_geom α' β']
 open projective_geom
 
 
+
+def f : Type* → Type := sorry -- get from affine points to projective points
+def g : Type* → Type := sorry --- get from affine lines to projective lines
+
+-- projectivization of an affine geometry
+def projectivize (α β : Type) [affine_geom α β] : projective_geom (f α) (g β) :=
+sorry 
 
 end projective_geometry
 end geom
