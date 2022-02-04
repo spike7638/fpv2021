@@ -1,5 +1,6 @@
-Prove Prop 1.2 (two distinct lines have at most one point in common)
-Prove Prop 1.2A. An affine plane has at least four points
+.Prove Prop 1.2 (two distinct lines have at most one point in common)
+.Prove Prop 1.2A. An affine plane has at least four points
+
 Maybe try to define "pencil" (or "affine-pencil")
 Try to shorten the A4 proof using taut? 
 
