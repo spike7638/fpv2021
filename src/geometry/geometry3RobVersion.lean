@@ -109,7 +109,8 @@ instance my_gp : group (my_fin4) := sorry
 
 variables {α β : Type} [affine_geom α β]
 include α
-#check G.parallel_prop_2 
+
+#check affine_geom.parallel_prop_2 
 #check G.parallel_prop_3 
 #check G.parallel 
 #check G.meets
@@ -117,6 +118,7 @@ include α
 
 
 open affine_geom
+#check parallel_prop_2 
 
 lemma join_contains_left (P Q : α) : meets P (join P Q : β) :=
 and.left (begin end)
@@ -168,7 +170,7 @@ infix `||` := parallel
 notation a `||[` α `]` b := parallel a b
 
 lemma parallel_symmetric:
-  symmetric (λ l1 l2 : β, parallel l1 l2) := 
+  symmetric (parallel : β → β →   Prop) := 
   begin
     rw [symmetric],
     intro k,
