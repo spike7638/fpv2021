@@ -49,7 +49,8 @@ NB: Hartshorne uses the letter "l" to denote lines. I'll almost always avoid thi
 letter l looks too much like 1 for my comfort. 
  -/
 
-@[class] structure affine_geom (α β  : Type u) :=
+-- out-param is used to simplify 
+@[class] structure affine_geom (α : out_param (Type u)) (β  : Type u) :=
 (meets           : α → β  → Prop) -- a point P:α is on a line k:β  
 (join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
 (join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
@@ -85,14 +86,17 @@ letter l looks too much like 1 for my comfort.
 -- those.
 
 variables {α β : Type} [affine_geom α β]
+include α  --- needed to be sure that lookup on an affine geom can proceed with only β 
 #check affine_geom.parallel_prop_2 
 open affine_geom
 #check parallel_prop_3 
 #check parallel 
 #check meets
 
+infix `||` := parallel
+
 lemma parallel_symmetric:
-  symmetric (parallel α : β → β → Prop) := 
+  symmetric (parallel : β → β → Prop) := 
   begin
     rw [symmetric],
     intro k,
@@ -105,7 +109,7 @@ lemma parallel_symmetric:
     },
     intro hpkn,
     have kNEn: k ≠ n := h,
-    have ha : (k ≠ n) ∧ (parallel α k n) :=  
+    have ha : (k ≠ n) ∧ (parallel k n) :=  
     begin 
         exact ⟨h, hpkn⟩,
     end,
@@ -114,7 +118,7 @@ lemma parallel_symmetric:
       refine affine_geom.parallel_prop_2 k n ha, 
     end,
 
-    have: (affine_geom.parallel α n k) := 
+    have: (parallel  n k) := 
     begin
       refine affine_geom.parallel_prop_3 n k _,
       intro P,
@@ -127,7 +131,7 @@ lemma parallel_symmetric:
 
 lemma parallel_equivalence:
 --   equivalence (G.parallel α β)    :=
-equivalence (parallel α : β → β → Prop)     := 
+equivalence (parallel : β → β → Prop)     := 
 begin
   repeat { apply and.intro },
   {
@@ -742,7 +746,7 @@ begin
       end,
     end,  
   }, -- end of S ≠ R
-end
+end 
 
 -- Now consider the lines P R and QS. It
 -- may happen that they meet (for example in
@@ -774,15 +778,15 @@ end
 
 end affine_geometry 
 
-section projective_geometry
+
 @[class] structure projective_geom (α β  : Type u) :=
-(meets           : α → β  → Prop) -- a point P:α is on a line k:β  
-(join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
-(join_contains   : ∀ P Q, (meets P (join P Q)) ∧ (meets Q (join P Q)))
-(join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
-(p2              : ∀ k n:β, ∃ P:α, ((meets P k) ∧ (meets P n))) -- any two lines meet in at least one point
-(p3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
-(p4              : ∀ k:β, ∃ P Q R:α , (P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R) ∧ (meets P k) ∧ (meets Q k) ∧ (meets R k)) -- there are 3 points on any line
+(pmeets           : α → β  → Prop) -- a point P:α is on a line k:β  
+(pjoin            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
+(join_contains   : ∀ P Q, (pmeets P (pjoin P Q)) ∧ (pmeets Q (pjoin P Q)))
+(join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (pmeets P k) ∧ (pmeets Q k)) →  (k = (pjoin P Q)))
+(p2              : ∀ k n:β, ∃ P:α, ((pmeets P k) ∧ (pmeets P n))) -- any two lines meet in at least one point
+(p3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ pmeets P (pjoin Q R)))) -- there are 3 noncollinear pts.
+(p4              : ∀ k:β, ∃ P Q R:α , (P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R) ∧ (pmeets P k) ∧ (pmeets Q k) ∧ (pmeets R k)) -- there are 3 points on any line
 
 variables {α β : Type} [projective_geom α β]
 
@@ -791,13 +795,18 @@ variables {α' β' : Type} [affine_geom α' β']
 #check projective_geom.p2 
 open projective_geom
 
+type ppoint(\a  \g ) = Ordinary(α ) | Extended (γ)
+type pline( β ) = Extended(β ) | InfiniteLine
+
+meets P Extended(k) = if P is Ordinary(S), then ameets S k
+                       if P is Extended([l] ) then check is k parallel to l 
 
 
 def f : Type* → Type := sorry -- get from affine points to projective points
 def g : Type* → Type := sorry --- get from affine lines to projective lines
 
 -- projectivization of an affine geometry
-def projectivize (α β : Type) [affine_geom α β] : projective_geom (f α) (g β) :=
+def projectivize (α β : Type) [affine_geom α' β'] : projective_geom (f α) (g β) :=
 sorry 
 
 end projective_geometry
