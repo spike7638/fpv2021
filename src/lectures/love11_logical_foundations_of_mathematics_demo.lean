@@ -631,6 +631,7 @@ equal. -/
 #check quotient.lift₂
 #check quotient.induction_on
 
+quotient.lift_on'
 
 /-! ## First Example: Integers
 

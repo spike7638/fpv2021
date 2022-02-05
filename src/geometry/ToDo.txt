@@ -1,8 +1,20 @@
 .Prove Prop 1.2 (two distinct lines have at most one point in common)
 .Prove Prop 1.2A. An affine plane has at least four points
 
-Maybe try to define "pencil" (or "affine-pencil")
-Try to shorten the A4 proof using taut? 
+.Maybe try to define "pencil" (or "affine-pencil")
 
-Think about how to define the "type" for points in the completion of an affine plane. Or just how to write the theorem
+.Think about how to define the "type" for points in the completion of an affine plane. Or just how to write the theorem
 for a single (assumed) affine plane. 
+
+Cleanup: Merge Dhruv's version with my most recent notes about "out_param", etc., and start to be more judicious about
+keeping a single track of progress. Move the A4 stuff into a separate file that imports affine_geom. 
+
+Include mathLib in the github repository (or tell Dhruv that it's there).
+
+Try to shorten the A4 proof using taut.
+
+Write a solution to Exercise 1 so that we can use it to fill in the last of the "sorry"s from my session 
+with Dhruv on 2/4. 
+
+Try to shorten the "there are four points on any a-plane" proof by writing lots of little lemmas
+Follow Rob's guidance that most proofs are 3-5 lines long. 
