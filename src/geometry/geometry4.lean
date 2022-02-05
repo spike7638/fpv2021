@@ -35,7 +35,7 @@ The definition of parallel between A1 and A2 turns into a function that, given t
 parallel or not. Actually, "parallel" (the function) is first asserted to exist [or, if you like, required 
 to exist if you want to build an affine-geometry structure on some points and lines]. The next three conditions 
 say that (1) lines are parallel to themselves, and (2) that if k and n are distinct and parallel, 
-then any point on kis NOT a point on n and (3) vice-versa: if k and n have no points in common, then k and n
+then any point on k is NOT a point on n and (3) vice-versa: if k and n have no points in common, then k and n
 are parallel. 
 
 Axiom 2 asserts the existence of a unique parallel under certain conditions. Once again, we'll want
@@ -69,13 +69,7 @@ letter l looks too much like 1 for my comfort.
 
 -- I'd like to say "for the next page or so, A denotes an affine geometry." The following line fails to do so
 -- I got it by trying to imitate   .../algebra/group/defs, line 72ff
--- variables {A : Type u} [affine_geom A] 
-
--- #check A
--- -- @[simp, to_additive]
--- -- lemma mul_left_inv : ∀ a : G, a⁻¹ * a = 1 :=
--- -- group.mul_left_invs
-
+--
 -- lemma parallel_equiv:  setoid A :=
 -- { r := parallel,
 --   iseqv := sorry
@@ -86,7 +80,29 @@ letter l looks too much like 1 for my comfort.
 -- those.
 
 variables {α β : Type} [affine_geom α β]
+-- That used to say [G: affine_geom α β], but it turns out that NAMING the geometry does something weird 
+-- in Lean's lookup for class-instances as Rob explained on 2/4/22. Leaving it unnamed asserts somehow that 
+-- there IS an instance of an affine_geom based on types α and β . 
+-- When we see something like "meets P k", and P has type α and k has type β,  Lean looks for 
+-- an affine_geom structure based on types "α and β " in some table-of-instances, finds this one,
+-- and says "Ah...meets must have all the properties specified in the class description." 
+-- What about when it sees "parallel n k"? That's trickier -- from n and k it knows only the type
+-- β, and that's not enough to use in looking for things in a table indexed by α - β pairs. So
+-- under normal circumstances, if we wrote
+--      @[class] structure affine_geom (α β  : Type u) :=
+-- we'd find that "parallel" had a third, implicit, argument, and to get the particular 
+-- "parallel" that we wanted, we'd have to write "parallel α n k". That's a bit ugly, so
+-- we used a different set-up:
+--     @[class] structure affine_geom (α : out_param (Type u)) (β  : Type u) :=
+-- which says "don't bother finding out what α is; just look through the table for something
+-- whose second argument is β, and take the first one you find as the "intended" geometry."
+
+
 include α  --- needed to be sure that lookup on an affine geom can proceed with only β 
+-- Again, this requires some explanation; it's best for me to defer to the recording with 
+-- Rob from 2/4/22. 
+-- But it's also important to "omit α " at times (i.e., to undo this requirement that α be present)
+
 #check affine_geom.parallel_prop_2 
 open affine_geom
 #check parallel_prop_3 
