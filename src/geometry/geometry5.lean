@@ -168,18 +168,11 @@ begin
 -- which is impossible by axiom A2." 
 -- (a2              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) ↔ (n = find_parallel P k))
     rw [transitive],
-    intro q,
-    intro r,
-    intro s,
-    intro hp1,
-    intro hp2,
-    -- have hAnd: ((affine_geom.parallel α q r) ∧ (affine_geom.parallel α r s)) := and.intro hp1 hp2,
-    -- revert hAnd,
+    intros q r s hp1 hp2,
 -- If k = n, there is nothing to prove
-    by_cases hqs: q = s ,
+    by_cases hqs: q = s,
     {
       rw [hqs],
-      -- intro hJunk,
       apply parallel_prop_1,
     },
 -- If k ≠ n, 
@@ -188,9 +181,8 @@ begin
       intro hh,
       have hw := (mt (parallel_prop_3 q s)) hh,
       simp at hw, 
-      cases hw,
-      rename hw_w P,
- 
+      cases hw with P,
+      
       have e1: q = find_parallel P r := 
       begin
         apply (a2a P r q), 
@@ -217,6 +209,7 @@ lemma exists_intersection (n k : β) (hnp : ¬ n || k) : ∃ P : α , meets P n 
   exact hnp hp,
 end
 
+-- I do not understand why this is needed...
 lemma exists_line (α β : Type) [G : affine_geom α β] : ∃ k : β, k = k :=
 begin 
   cases G.a3 with P h, cases h with Q h_2,
@@ -248,29 +241,16 @@ begin
   have hQr: affine_geom.meets Q r := (h1.2).2.2.1,
   have hQs: affine_geom.meets Q s := (h1.2).2.2.2,
   -- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
-  have hru:  ((P ≠ Q) ∧ (affine_geom.meets P r) ∧ (affine_geom.meets Q r)) := begin 
-    cc,    
-  end,
-  have hrru:  r = affine_geom.join P Q :=
-  begin
-    apply (affine_geom.join_unique P Q r hru),
-  end, 
-  have hsu:  ((P ≠ Q) ∧ (affine_geom.meets P s) ∧ (affine_geom.meets Q s)) := begin 
-    cc,    
-  end,
-  have hssu:  s = affine_geom.join P Q :=
-  begin
-    apply (affine_geom.join_unique P Q s hsu),
-  end, 
-  have hreqs: r = s :=
-  begin
-    rw [hrru, hssu],
-  end,
+  have hru:  ((P ≠ Q) ∧ (affine_geom.meets P r) ∧ (affine_geom.meets Q r)) := by tauto,    
+  have hrru:  r = affine_geom.join P Q := by apply (affine_geom.join_unique P Q r hru),
+  have hsu:  ((P ≠ Q) ∧ (affine_geom.meets P s) ∧ (affine_geom.meets Q s)) := by tauto,
+  have hssu:  s = affine_geom.join P Q := by apply (affine_geom.join_unique P Q s hsu),
+  have hreqs: r = s :=by rw [hrru, hssu],
   exact hrs hreqs,
 end
 .
 
-lemma one_shared_line (r s: β) (P Q: α ) [G: (affine_geom α β) ]: 
+lemma one_shared_line (r s: β) (P Q: α ) [affine_geom α β]: 
 P ≠ Q ∧ 
 affine_geom.meets P r ∧ affine_geom.meets P s ∧ 
 affine_geom.meets Q r ∧ affine_geom.meets Q s → 
@@ -307,6 +287,25 @@ begin
   exact hrnes hreqs,
 end
 .
+lemma join_contains_left (P Q:α): meets P ((join P Q):β) := (join_contains P Q).left
+lemma join_contains_right (P Q:α): meets Q ((join P Q):β) := (join_contains P Q).right
+
+lemma equal_joins (P Q R S:α) (hPQ : P ≠ Q) (hRS : R ≠ S) [affine_geom α β]: meets R ((join P Q):β) ∧ meets S ((join P Q):β) → join R S = ((join P Q):β)  :=
+begin
+  have h1: R ≠ S ∧ 
+meets R ((join P Q):β)  ∧ meets R ((join R S):β)  ∧ 
+meets S ((join P Q):β) ∧ meets S ((join R S):β) → 
+((join P Q):β)  = ((join R S):β) := begin
+  apply (one_shared_line ((join P Q):β) ((join R S):β) R S),
+end,
+  simp [hRS] at h1,
+  have h2: meets R ((join R S):β) ∧ meets S ((join R S):β) := (join_contains R S),
+  intro hm,
+  apply (one_shared_line (join R S) (join P Q) R S),
+  simp [hRS],
+  exact ⟨ h2.1, hm.1, h2.2, hm.2⟩ ,
+  exact _inst_1, -- this feels really disgusting...not sure why I should have to do this.
+end
 
 lemma same_joins [G : (affine_geom α β)]:
 ∀ P  Q  R:α ,∀ m:β , (P ≠ Q ∧  P ≠ R ∧  Q ≠ R ∧ (m = affine_geom.join P Q) ∧ (affine_geom.meets R m)) → (affine_geom.join Q R = m) :=
