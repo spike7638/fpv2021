@@ -1,4 +1,7 @@
 import tactic
+import data.real.basic
+import data.matrix.notation
+
 local attribute classical.prop_decidable
 -- set_option pp.all true
 
@@ -116,6 +119,9 @@ open affine_geom
 #check meets
 
 infix `||` := parallel
+precedence `⊸` : 20
+infix `⊸` := meets --- tentative icon for "meets"; type \-o to get this icon.
+
 
 lemma parallel_symmetric:
   symmetric (parallel : β → β → Prop) := 
@@ -218,8 +224,204 @@ end
 .
 
 
+section A2
 -- Example. The ordinary plane, known to us from Euclidean geometry, satisfies the axioms A1–A3, and therefore is an affine plane.
--- STILL DO TO
+-- Recall that an affine plane looks like this:
+-- @[class] structure affine_geom (α : out_param (Type u)) (β  : Type u) :=
+-- (meets           : α → β  → Prop) -- a point P:α is on a line k:β  
+-- (join            : α → α → β)     -- join P Q is the unique line joining P and Q (at least when they're distinct)
+-- (join_contains   : ∀ P Q, (meets P (join P Q))∧ (meets Q (join P Q)))
+-- (join_unique     : ∀ P Q k, ((P ≠ Q) ∧ (meets P k) ∧ (meets Q k)) →  (k = (join P Q)))
+-- (parallel        : β → β → Prop)
+-- (parallel_prop_1 :  ∀ k, parallel k k) 
+-- --(parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (((meets P k) →  ¬ (meets P n)))))
+-- (parallel_prop_2 : ∀ k n, ((k ≠ n) ∧  (parallel k n)) →  (∀ P, (¬ ((meets P k) ∧ (meets P n)))))
+-- (parallel_prop_3 : ∀ k n, (∀ P:α , ((meets P k) →  ¬ (meets P n)) ) → (parallel k n)  ) 
+-- (find_parallel   : α → β → β)     -- given P, k, there a unique line n parallel to k and containing P. that's 'find_parallel P k'
+-- (a2a              : ∀ P k n, ((meets P n ) ∧ (parallel n k)) →  (n = find_parallel P k))
+-- (a2b              : ∀ P k n, (n = find_parallel P k) → ((meets P n ) ∧ (parallel n k)))
+-- (a3              : ∃ P Q R, (((P ≠ Q) ∧ (Q ≠ R) ∧ (P ≠ R)) ∧ (¬ meets P (join Q R)))) -- there are 3 noncollinear pts.
+--
+-- We need to pick α, β, and define the meets, join, and parallel functions, and show
+-- that they have the stated properties. The problem here is β: If we think of lines as 
+-- solutions to equations of the form Ax + By + C = 0, then the line (A,B,C) is "the same"
+-- as the line (3A, 3B, 3C). So there's an equivalence relation hidden in here. Also, there's a 
+-- constraint: A and B cannot both be zero (i.e., our "type" is not all of R^3, but instead is R^3 except
+-- for the z-axis). So we've got some proving to do even in setting up β. 
+--
+-- First step: define the type for line-coefficients (whose quotient will be β)
+omit α 
+
+
+def Y := { v : fin 3 → ℝ // (v 0 ≠ 0) ∨  (v 1 ≠ 0) }
+#check Y
+
+
+lemma one_over (x : ℝ ): x ≠ 0 → (1/x * x) = 1 :=
+div_mul_cancel 1
+
+lemma assoc (a b c : ℝ) : (a * b) *c = a * (b * c) := mul_assoc a b c
+
+@[instance] def a2.rel : setoid(Y) := 
+{r := λ k n : Y, ∃ t: ℝ, (t ≠ 0) ∧ (k.val 0) = t* (n.val 0) ∧ 
+(k.val  1) = t* (n.val 1) ∧ (k.val 2) = t*(n.val 2),
+iseqv := 
+  begin
+    repeat { apply and.intro },
+    {
+      intro h,
+      have hinst: ( (1:ℝ)  ≠ (0:ℝ)) ∧ (h.val 0) = 1* (h.val 0) ∧ 
+(h.val  1) = 1* (h.val 1) ∧ (h.val 2) = 1*(h.val 2) := by simp,
+     exact exists.intro 1 hinst,
+    },
+    {
+      intro h,
+      intro y,
+      intro p,
+      cases p with s ps,
+      have hs0: (s:ℝ)  ≠ (0:ℝ) := by exact ps.1,
+      have h00: ((1:ℝ) /s) ≠ (0:ℝ) := by exact one_div_ne_zero hs0,
+      have h0: ((1:ℝ)/s) * h.val 0 = y.val 0 := 
+      begin
+        rw  [ps.2.1],
+        rw tactic.ring.mul_assoc_rev (1/s) s (y.val 0),
+        have hi: (1/s * s = 1) := one_over s hs0,
+        rw [hi],
+        simp,
+      end,
+      have h1: ((1:ℝ)/s) * h.val 1 = y.val 1 := 
+      begin
+        rw  [ps.2.2.1],
+        rw tactic.ring.mul_assoc_rev (1/s) s (y.val 1),
+        have hi: (1/s * s = 1) := one_over s hs0,
+        rw [hi],
+        simp,
+      end,
+      have h2: ((1:ℝ)/s) * h.val 2 = y.val 2 := 
+      begin
+        rw  [ps.2.2.2],
+        rw tactic.ring.mul_assoc_rev (1/s) s (y.val 2),
+        have hi: (1/s * s = 1) := one_over s hs0,
+        rw [hi],
+        simp,
+      end,
+      have h0r: y.val 0 = ((1:ℝ)/s) * h.val 0 := eq.symm h0,
+      have h1r: y.val 1 = ((1:ℝ)/s) * h.val 1 := eq.symm h1,
+      have h2r: y.val 2 = ((1:ℝ)/s) * h.val 2 := eq.symm h2,
+      have hB: ((1:ℝ)/s) ≠ 0 ∧ y.val 0 = ((1:ℝ)/s) * h.val 0 ∧ y.val 1 = ((1:ℝ)/s) * h.val 1 ∧ y.val 2 = ((1:ℝ)/s) * h.val 2 :=
+      begin
+        by tauto,
+      end,
+      exact exists.intro ((1:ℝ)/s) hB,
+    },
+    {
+      intros x y z,
+      intros h1 h2,
+      cases h1 with s ps,
+      cases h2 with r pr,
+      have hs0: s ≠ 0 := ps.1,
+      have hr0: r ≠ 0 := pr.1,
+      have ht: s*r ≠ (0:ℝ) := mul_ne_zero hs0 hr0,
+      have hz0: x.val 0 = (s*r) * z.val 0 := begin 
+        have u: x.val 0 = s * y.val 0 := ps.right.left,
+        have v: y.val 0 = r * z.val 0 := pr.right.left,
+        rw [v] at u,
+        have w: s * r * z.val 0 = s * (r * z.val 0) :=  assoc s r (z.val 0),
+        exact (rfl.congr (eq.symm w)).mp u,
+      end,
+      have hz1: x.val 1 = (s*r) * z.val 1 := begin 
+        have u: x.val 1 = s * y.val 1 := ps.2.2.1,
+        have v: y.val 1 = r * z.val 1 := pr.2.2.1,
+        rw [v] at u,
+        have w: s * r * z.val 1 = s * (r * z.val 1) :=  assoc s r (z.val 1),
+        exact (rfl.congr (eq.symm w)).mp u,
+      end,
+      have hz2: x.val 2 = (s*r) * z.val 2 := begin 
+        have u: x.val 2 = s * y.val 2 := ps.2.2.2,
+        have v: y.val 2 = r * z.val 2 := pr.2.2.2,
+        rw [v] at u,
+        have w: s * r * z.val 2 = s * (r * z.val 2) :=  assoc s r (z.val 2),
+        exact (rfl.congr (eq.symm w)).mp u,
+      end,
+      have hC: (s*r) ≠ 0 ∧ x.val 0 = (s*r) * z.val 0 ∧ x.val 1 = (s*r) * z.val 1 ∧ x.val 2 = (s*r) * z.val 2 :=
+      begin
+        tauto,
+      end,
+      exact exists.intro (s*r) hC,
+    }
+  end
+}
+
+-- To do: meets, join, parallel, find-parallel
+
+-- code from defining Z as a quotient of N x N to use as an example
+-- @[instance] def int.rel : setoid (ℕ × ℕ) :=
+-- { r     :=
+--     λpn₁ pn₂ : ℕ × ℕ,
+--       prod.fst pn₁ + prod.snd pn₂ = prod.fst pn₂ + prod.snd pn₁,
+--   iseqv :=
+--     begin
+--       repeat { apply and.intro },
+--       { intro pn,
+--         refl },
+--       { intros pn₁ pn₂ h,
+--         rw h },
+--       { intros pn₁ pn₂ pn₃ h₁₂ h₂₃,
+--         linarith }
+--     end }
+
+
+-- lemma int.rel_iff (pn₁ pn₂ : ℕ × ℕ) :
+--   pn₁ ≈ pn₂ ↔
+--   prod.fst pn₁ + prod.snd pn₂ = prod.fst pn₂ + prod.snd pn₁ :=
+-- by refl
+
+-- def int : Type :=
+-- quotient int.rel
+
+-- def int.zero : int :=
+-- ⟦(0, 0)⟧
+
+-- lemma int.zero_eq (m : ℕ) :
+--   int.zero = ⟦(m, m)⟧ :=
+-- begin
+--   rw int.zero,
+--   apply quotient.sound,
+--   rw int.rel_iff,
+--   simp
+-- end
+
+-- def int.add : int → int → int :=
+-- quotient.lift₂
+--   (λpn₁ pn₂ : ℕ × ℕ,
+--      ⟦(prod.fst pn₁ + prod.fst pn₂,
+--        prod.snd pn₁ + prod.snd pn₂)⟧)
+--   begin
+--     intros pn₁ pn₂ pn₁' pn₂' h₁ h₂,
+--     apply quotient.sound,
+--     rw int.rel_iff at *,
+--     linarith
+--   end
+
+-- lemma int.add_eq (p₁ n₁ p₂ n₂ : ℕ) :
+--   int.add ⟦(p₁, n₁)⟧ ⟦(p₂, n₂)⟧ = ⟦(p₁ + p₂, n₁ + n₂)⟧ :=
+-- by refl
+
+-- lemma int.add_zero (i : int) :
+--   int.add int.zero i = i :=
+-- begin
+--   apply quotient.induction_on i,
+--   intro pn,
+--   rw int.zero,
+--   cases' pn with p n,
+--   rw int.add_eq,
+--   apply quotient.sound,
+--   simp
+-- end
+
+
+
+end A2
 
 -- Proposition 1.2 Two distinct lines have at most one point in common.
 -- For if l, m both pass through two distinct points P, Q, then by axiom A1,
@@ -227,7 +429,7 @@ end
 
 lemma one_shared_point (r s: β) (P Q: α ) [G: (affine_geom α β) ]: 
 r ≠ s ∧ 
-affine_geom.meets P r ∧ affine_geom.meets P s ∧ 
+ (P ⊸ r) ∧ affine_geom.meets P s ∧ 
 affine_geom.meets Q r ∧ affine_geom.meets Q s → 
 P = Q :=
 begin
